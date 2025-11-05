@@ -136,7 +136,7 @@ const Clients = () => {
                 key={index}
                 className="bg-card border border-border p-6 rounded-lg flex flex-col items-center justify-center hover:border-primary/50 hover:shadow-glow transition-all duration-300 group min-h-[180px]"
               >
-                <div className="bg-white rounded-lg p-6 mb-4 w-full flex items-center justify-center shadow-sm">
+                <div className="bg-muted/30 rounded-lg p-6 mb-4 w-full flex items-center justify-center border border-border/50">
                   <img
                     src={client.logo}
                     alt={client.name}
