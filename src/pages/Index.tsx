@@ -27,6 +27,12 @@ const Index = () => {
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
               How It Works
             </a>
+            <button 
+              onClick={() => navigate("/clients")}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Clients
+            </button>
             <Button 
               variant="outline" 
               className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
