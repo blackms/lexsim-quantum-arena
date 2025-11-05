@@ -134,13 +134,16 @@ const Clients = () => {
             {clients.map((client, index) => (
               <div
                 key={index}
-                className="bg-white p-8 rounded-lg flex items-center justify-center hover:shadow-glow transition-all duration-300 group"
+                className="bg-card border border-border p-8 rounded-lg flex flex-col items-center justify-center hover:border-primary/50 hover:shadow-glow transition-all duration-300 group min-h-[140px]"
               >
-                <img
-                  src={client.logo}
-                  alt={client.name}
-                  className="max-h-16 w-auto object-contain grayscale group-hover:grayscale-0 transition-all opacity-60 group-hover:opacity-100"
-                />
+                <div className="bg-white rounded-md p-4 mb-3 w-full flex items-center justify-center">
+                  <img
+                    src={client.logo}
+                    alt={client.name}
+                    className="max-h-12 w-auto object-contain"
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground font-medium">{client.region}</span>
               </div>
             ))}
           </div>
