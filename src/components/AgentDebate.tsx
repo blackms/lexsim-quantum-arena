@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { ScenarioCountry, getAgentLabels } from "@/types/scenario";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: number;
@@ -55,36 +56,107 @@ const sampleMessages: Omit<Message, "id" | "timestamp">[] = [
 interface AgentDebateProps {
   isSimulating: boolean;
   country: ScenarioCountry;
+  caseType?: string;
+  evidenceStrength?: number;
 }
 
-const AgentDebate = ({ isSimulating, country }: AgentDebateProps) => {
+const AgentDebate = ({ isSimulating, country, caseType = "criminal", evidenceStrength = 75 }: AgentDebateProps) => {
   const agentLabels = getAgentLabels(country);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const agents: Array<{ role: "prosecutor" | "defense" | "judge" | "witness" | "expert", key: "prosecution" | "defense" | "judge" | "witness" | "expert" }> = [
+    { role: "prosecutor", key: "prosecution" },
+    { role: "defense", key: "defense" },
+    { role: "judge", key: "judge" },
+    { role: "expert", key: "expert" },
+    { role: "witness", key: "witness" },
+  ];
+
+  const generateArgument = async (agentRole: string, agentKey: string) => {
+    if (isGenerating) return;
+    
+    setIsGenerating(true);
+    try {
+      const caseContext = country === "IT"
+        ? `Caso ${caseType}, forza prove ${evidenceStrength}%`
+        : `${caseType} case, evidence strength ${evidenceStrength}%`;
+      
+      const previousArguments = messages.slice(-5).map(m => m.content);
+
+      const { data, error } = await supabase.functions.invoke("generate-legal-argument", {
+        body: {
+          agent: agentRole,
+          country,
+          caseContext,
+          previousArguments,
+        },
+      });
+
+      if (error) {
+        console.error("Error generating argument:", error);
+        return;
+      }
+
+      const newMessage: Message = {
+        id: Date.now(),
+        agent: agentLabels[agentRole as keyof typeof agentLabels] || agentRole,
+        role: agentKey as Message["role"],
+        content: data.argument,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, newMessage].slice(-20));
+    } catch (error) {
+      console.error("Error in generateArgument:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   useEffect(() => {
     if (isSimulating) {
-      const interval = setInterval(() => {
-        const randomMessage = sampleMessages[Math.floor(Math.random() * sampleMessages.length)];
-        const newMessage: Message = {
-          id: Date.now(),
-          timestamp: new Date(),
-          ...randomMessage,
-        };
-        
-        setMessages(prev => [...prev, newMessage].slice(-20)); // Keep last 20 messages
-      }, 3000);
+      // Initial delay before first argument
+      const startDelay = setTimeout(() => {
+        generateArgument(agents[0].role, agents[0].key);
+      }, 1000);
 
-      return () => clearInterval(interval);
+      return () => clearTimeout(startDelay);
     }
   }, [isSimulating]);
+
+  useEffect(() => {
+    if (isSimulating && messages.length > 0 && !isGenerating) {
+      // Generate next argument after a delay
+      const nextAgent = agents[messages.length % agents.length];
+      const delay = setTimeout(() => {
+        generateArgument(nextAgent.role, nextAgent.key);
+      }, 3000 + Math.random() * 2000); // 3-5 seconds between arguments
+
+      return () => clearTimeout(delay);
+    }
+  }, [isSimulating, messages.length, isGenerating]);
 
   return (
     <ScrollArea className="h-[500px] pr-4">
       <div className="space-y-4">
         {messages.length === 0 && !isSimulating && (
           <div className="text-center py-20 text-muted-foreground">
-            <p className="text-lg">Press Start to begin agent simulation</p>
-            <p className="text-sm mt-2">AI agents will engage in adversarial legal debate</p>
+            <p className="text-lg">
+              {country === "IT" ? "Premi Inizia per avviare la simulazione" : "Press Start to begin agent simulation"}
+            </p>
+            <p className="text-sm mt-2">
+              {country === "IT" ? "Gli agenti AI si impegneranno in dibattimento legale" : "AI agents will engage in adversarial legal debate"}
+            </p>
+          </div>
+        )}
+        
+        {messages.length === 0 && isSimulating && isGenerating && (
+          <div className="text-center py-20 text-muted-foreground">
+            <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-lg">
+              {country === "IT" ? "Generazione argomenti AI..." : "Generating AI arguments..."}
+            </p>
           </div>
         )}
         

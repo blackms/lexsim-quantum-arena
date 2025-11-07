@@ -161,18 +161,23 @@ const Dashboard = () => {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Left Column - Debate & Strategies */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="bg-card border-border p-6">
+            <Card className="bg-card border-border p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${isSimulating ? 'bg-primary animate-pulse-glow' : 'bg-muted'}`} />
-                    {scenario?.country === "IT" ? "Dibattimento Agenti" : "Live Agent Debate"}
+                    {scenario?.country === "IT" ? "Dibattimento Agenti AI" : "Live AI Agent Debate"}
                   </h2>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Activity className="h-4 w-4" />
                     <span>{isSimulating ? (scenario?.country === "IT" ? "Attivo" : "Active") : (scenario?.country === "IT" ? "In Pausa" : "Paused")}</span>
                   </div>
                 </div>
-                <AgentDebate isSimulating={isSimulating} country={scenario?.country || "US"} />
+                <AgentDebate 
+                  isSimulating={isSimulating} 
+                  country={scenario?.country || "US"}
+                  caseType={scenario?.caseType}
+                  evidenceStrength={scenario?.evidenceStrength}
+                />
               </Card>
 
               <StrategyPanel country={scenario?.country || "US"} />

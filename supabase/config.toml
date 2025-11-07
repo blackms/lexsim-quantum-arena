@@ -1,0 +1,4 @@
+project_id = "idcplbjekzrhqitjudhg"
+
+[functions.generate-legal-argument]
+verify_jwt = false
