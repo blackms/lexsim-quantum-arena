@@ -7,12 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { FileText, User, Building2, Scale, Globe } from "lucide-react";
 import { ScenarioCountry, ScenarioConfig as ScenarioConfigType, getCaseTypes, getJurisdictions, getCurrency } from "@/types/scenario";
+import ModelSelector from "@/components/ModelSelector";
 
 interface ScenarioConfigProps {
   onStart: (config: ScenarioConfigType) => void;
+  agentModels: Record<string, string>;
+  onModelChange: (agent: string, model: string) => void;
 }
 
-const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
+const ScenarioConfig = ({ onStart, agentModels, onModelChange }: ScenarioConfigProps) => {
   const [country, setCountry] = useState<ScenarioCountry>("US");
   const [caseType, setCaseType] = useState("");
   const [jurisdiction, setJurisdiction] = useState("");
@@ -165,7 +168,19 @@ const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
             <span>{country === "IT" ? "Max" : "Maximum"}</span>
           </div>
         </div>
+      </div>
 
+      {/* AI Model Configuration for Italian scenarios */}
+      {country === "IT" && (
+        <div className="mt-6">
+          <ModelSelector 
+            agentModels={agentModels}
+            onModelChange={onModelChange}
+          />
+        </div>
+      )}
+
+      <div className="space-y-6 mt-6">
         {/* Start Button */}
         <Button 
           className="w-full bg-primary hover:bg-primary/90 shadow-glow mt-8" 

@@ -157,24 +157,20 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-              <ScenarioConfig onStart={handleStart} />
+              <ScenarioConfig 
+                onStart={handleStart}
+                agentModels={agentModels}
+                onModelChange={(agent, model) => {
+                  setAgentModels(prev => ({ ...prev, [agent]: model }));
+                }}
+              />
             </div>
           </div>
         ) : (
           // Simulation View
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Left Column - Debate & Strategies */}
-            <div className={`${showSettings ? 'lg:col-span-2' : 'lg:col-span-2'} space-y-6`}>
-              {/* Model Settings Panel (only for IT scenarios) */}
-              {showSettings && scenario?.country === "IT" && (
-                <ModelSelector 
-                  agentModels={agentModels}
-                  onModelChange={(agent, model) => {
-                    setAgentModels(prev => ({ ...prev, [agent]: model }));
-                  }}
-                />
-              )}
-
+            <div className="lg:col-span-2 space-y-6">
               <Card className="bg-card border-border p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold flex items-center gap-2">
