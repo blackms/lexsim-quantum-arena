@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { ScenarioCountry, getAgentLabels } from "@/types/scenario";
 
 interface Message {
   id: number;
@@ -53,9 +54,11 @@ const sampleMessages: Omit<Message, "id" | "timestamp">[] = [
 
 interface AgentDebateProps {
   isSimulating: boolean;
+  country: ScenarioCountry;
 }
 
-const AgentDebate = ({ isSimulating }: AgentDebateProps) => {
+const AgentDebate = ({ isSimulating, country }: AgentDebateProps) => {
+  const agentLabels = getAgentLabels(country);
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
@@ -95,7 +98,7 @@ const AgentDebate = ({ isSimulating }: AgentDebateProps) => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="outline" className={agentColors[message.role]}>
-                    {message.agent}
+                    {agentLabels[message.role as keyof typeof agentLabels] || message.agent}
                   </Badge>
                   <span className="text-xs text-muted-foreground font-mono">
                     {message.timestamp.toLocaleTimeString()}

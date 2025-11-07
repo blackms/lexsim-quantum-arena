@@ -1,16 +1,42 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { FileText, User, Building2, Scale } from "lucide-react";
+import { FileText, User, Building2, Scale, Globe } from "lucide-react";
+import { ScenarioCountry, ScenarioConfig as ScenarioConfigType, getCaseTypes, getJurisdictions, getCurrency } from "@/types/scenario";
 
 interface ScenarioConfigProps {
-  onStart: () => void;
+  onStart: (config: ScenarioConfigType) => void;
 }
 
 const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
+  const [country, setCountry] = useState<ScenarioCountry>("US");
+  const [caseType, setCaseType] = useState("");
+  const [jurisdiction, setJurisdiction] = useState("");
+  const [caseValue, setCaseValue] = useState(2500000);
+  const [evidenceStrength, setEvidenceStrength] = useState(75);
+  const [witnessCount, setWitnessCount] = useState(8);
+  const [intensity, setIntensity] = useState(3);
+
+  const caseTypes = getCaseTypes(country);
+  const jurisdictions = getJurisdictions(country);
+  const currency = getCurrency(country);
+
+  const handleStart = () => {
+    onStart({
+      country,
+      caseType: caseType || caseTypes[0].value,
+      jurisdiction: jurisdiction || jurisdictions[0].value,
+      caseValue,
+      evidenceStrength,
+      witnessCount,
+      intensity,
+    });
+  };
+
   return (
     <Card className="bg-card border-border p-6">
       <div className="flex items-center gap-2 mb-6">
@@ -19,21 +45,37 @@ const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
       </div>
 
       <div className="space-y-6">
+        {/* Country Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="country" className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-muted-foreground" />
+            {country === "IT" ? "Paese" : "Country"}
+          </Label>
+          <Select value={country} onValueChange={(v) => setCountry(v as ScenarioCountry)}>
+            <SelectTrigger id="country">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="US">🇺🇸 United States</SelectItem>
+              <SelectItem value="IT">🇮🇹 Italia</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Case Type */}
         <div className="space-y-2">
           <Label htmlFor="case-type" className="flex items-center gap-2">
             <Scale className="h-4 w-4 text-muted-foreground" />
-            Case Type
+            {country === "IT" ? "Tipo di Causa" : "Case Type"}
           </Label>
-          <Select defaultValue="criminal">
+          <Select value={caseType} onValueChange={setCaseType}>
             <SelectTrigger id="case-type">
-              <SelectValue />
+              <SelectValue placeholder={country === "IT" ? "Seleziona tipo" : "Select type"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="criminal">Criminal Case</SelectItem>
-              <SelectItem value="civil">Civil Litigation</SelectItem>
-              <SelectItem value="corporate">Corporate Dispute</SelectItem>
-              <SelectItem value="ip">Intellectual Property</SelectItem>
+              {caseTypes.map(type => (
+                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -42,28 +84,33 @@ const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
         <div className="space-y-2">
           <Label htmlFor="jurisdiction" className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-muted-foreground" />
-            Jurisdiction
+            {country === "IT" ? "Giurisdizione" : "Jurisdiction"}
           </Label>
-          <Select defaultValue="federal">
+          <Select value={jurisdiction} onValueChange={setJurisdiction}>
             <SelectTrigger id="jurisdiction">
-              <SelectValue />
+              <SelectValue placeholder={country === "IT" ? "Seleziona tribunale" : "Select court"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="federal">Federal Court</SelectItem>
-              <SelectItem value="state">State Court</SelectItem>
-              <SelectItem value="appellate">Appellate Court</SelectItem>
-              <SelectItem value="supreme">Supreme Court</SelectItem>
+              {jurisdictions.map(jur => (
+                <SelectItem key={jur.value} value={jur.value}>{jur.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         {/* Case Value */}
         <div className="space-y-2">
-          <Label htmlFor="case-value">Case Value (USD)</Label>
+          <Label htmlFor="case-value">
+            {country === "IT" ? "Valore della Causa (EUR)" : "Case Value (USD)"}
+          </Label>
           <Input
             id="case-value"
             type="text"
-            defaultValue="$2,500,000"
+            value={`${currency}${caseValue.toLocaleString(country === "IT" ? "it-IT" : "en-US")}`}
+            onChange={(e) => {
+              const num = parseInt(e.target.value.replace(/[^0-9]/g, ""));
+              if (!isNaN(num)) setCaseValue(num);
+            }}
             className="font-mono"
           />
         </div>
@@ -72,14 +119,14 @@ const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="flex items-center gap-2">
-              Evidence Strength
+              {country === "IT" ? "Forza delle Prove" : "Evidence Strength"}
             </Label>
-            <span className="text-sm font-mono text-primary">75%</span>
+            <span className="text-sm font-mono text-primary">{evidenceStrength}%</span>
           </div>
-          <Slider defaultValue={[75]} max={100} step={1} className="w-full" />
+          <Slider value={[evidenceStrength]} onValueChange={(v) => setEvidenceStrength(v[0])} max={100} step={1} className="w-full" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Weak</span>
-            <span>Strong</span>
+            <span>{country === "IT" ? "Debole" : "Weak"}</span>
+            <span>{country === "IT" ? "Forte" : "Strong"}</span>
           </div>
         </div>
 
@@ -87,12 +134,13 @@ const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
         <div className="space-y-2">
           <Label htmlFor="witnesses" className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
-            Number of Witnesses
+            {country === "IT" ? "Numero di Testimoni" : "Number of Witnesses"}
           </Label>
           <Input
             id="witnesses"
             type="number"
-            defaultValue="8"
+            value={witnessCount}
+            onChange={(e) => setWitnessCount(parseInt(e.target.value) || 0)}
             min="1"
             max="20"
           />
@@ -101,15 +149,20 @@ const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
         {/* Simulation Intensity */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label>Simulation Intensity</Label>
-            <span className="text-sm font-mono text-accent">High</span>
+            <Label>{country === "IT" ? "Intensità Simulazione" : "Simulation Intensity"}</Label>
+            <span className="text-sm font-mono text-accent">
+              {intensity === 1 ? (country === "IT" ? "Bassa" : "Low") : 
+               intensity === 2 ? (country === "IT" ? "Media" : "Medium") :
+               intensity === 3 ? (country === "IT" ? "Alta" : "High") :
+               (country === "IT" ? "Massima" : "Maximum")}
+            </span>
           </div>
-          <Slider defaultValue={[3]} max={3} step={1} className="w-full" />
+          <Slider value={[intensity]} onValueChange={(v) => setIntensity(v[0])} max={3} step={1} className="w-full" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Low</span>
-            <span>Medium</span>
-            <span>High</span>
-            <span>Maximum</span>
+            <span>{country === "IT" ? "Bassa" : "Low"}</span>
+            <span>{country === "IT" ? "Media" : "Medium"}</span>
+            <span>{country === "IT" ? "Alta" : "High"}</span>
+            <span>{country === "IT" ? "Max" : "Maximum"}</span>
           </div>
         </div>
 
@@ -117,23 +170,25 @@ const ScenarioConfig = ({ onStart }: ScenarioConfigProps) => {
         <Button 
           className="w-full bg-primary hover:bg-primary/90 shadow-glow mt-8" 
           size="lg"
-          onClick={onStart}
+          onClick={handleStart}
         >
-          Initialize Simulation
+          {country === "IT" ? "Inizializza Simulazione" : "Initialize Simulation"}
         </Button>
 
         {/* Quick Presets */}
         <div className="pt-4 border-t border-border">
-          <p className="text-sm text-muted-foreground mb-3">Quick Presets:</p>
+          <p className="text-sm text-muted-foreground mb-3">
+            {country === "IT" ? "Preset Rapidi:" : "Quick Presets:"}
+          </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="flex-1">
-              Standard
+              {country === "IT" ? "Standard" : "Standard"}
             </Button>
             <Button variant="outline" size="sm" className="flex-1">
-              Complex
+              {country === "IT" ? "Complesso" : "Complex"}
             </Button>
             <Button variant="outline" size="sm" className="flex-1">
-              High Stakes
+              {country === "IT" ? "Alto Rischio" : "High Stakes"}
             </Button>
           </div>
         </div>

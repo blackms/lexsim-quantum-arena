@@ -9,6 +9,7 @@ import SimulationStats from "@/components/SimulationStats";
 import StrategyPanel from "@/components/StrategyPanel";
 import ScenarioConfig from "@/components/ScenarioConfig";
 import SimulationTimeline from "@/components/SimulationTimeline";
+import { ScenarioCountry, ScenarioConfig as ScenarioConfigType } from "@/types/scenario";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Dashboard = () => {
   const [winProbability, setWinProbability] = useState(67);
   const [hasStarted, setHasStarted] = useState(false);
   const [simulationTime, setSimulationTime] = useState(0);
+  const [scenario, setScenario] = useState<ScenarioConfigType | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -39,9 +41,11 @@ const Dashboard = () => {
     setWinProbability(67);
     setHasStarted(false);
     setSimulationTime(0);
+    setScenario(null);
   };
 
-  const handleStart = () => {
+  const handleStart = (config: ScenarioConfigType) => {
+    setScenario(config);
     setHasStarted(true);
     setIsSimulating(true);
   };
@@ -161,17 +165,17 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${isSimulating ? 'bg-primary animate-pulse-glow' : 'bg-muted'}`} />
-                    Live Agent Debate
+                    {scenario?.country === "IT" ? "Dibattimento Agenti" : "Live Agent Debate"}
                   </h2>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Activity className="h-4 w-4" />
-                    <span>{isSimulating ? 'Active' : 'Paused'}</span>
+                    <span>{isSimulating ? (scenario?.country === "IT" ? "Attivo" : "Active") : (scenario?.country === "IT" ? "In Pausa" : "Paused")}</span>
                   </div>
                 </div>
-                <AgentDebate isSimulating={isSimulating} />
+                <AgentDebate isSimulating={isSimulating} country={scenario?.country || "US"} />
               </Card>
 
-              <StrategyPanel />
+              <StrategyPanel country={scenario?.country || "US"} />
             </div>
 
             {/* Right Column - Stats & Timeline */}
@@ -179,8 +183,9 @@ const Dashboard = () => {
               <SimulationStats 
                 winProbability={winProbability} 
                 isSimulating={isSimulating}
+                country={scenario?.country || "US"}
               />
-              <SimulationTimeline />
+              <SimulationTimeline country={scenario?.country || "US"} />
             </div>
           </div>
         )}

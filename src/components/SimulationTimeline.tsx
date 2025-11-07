@@ -1,6 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ScenarioCountry } from "@/types/scenario";
+
+interface SimulationTimelineProps {
+  country: ScenarioCountry;
+}
 
 interface TimelineEvent {
   id: number;
@@ -10,8 +15,37 @@ interface TimelineEvent {
   description: string;
 }
 
-const SimulationTimeline = () => {
-  const events: TimelineEvent[] = [
+const SimulationTimeline = ({ country }: SimulationTimelineProps) => {
+  const events: TimelineEvent[] = country === "IT" ? [
+    {
+      id: 1,
+      time: "00:00:12",
+      type: "milestone",
+      title: "Discussione Iniziale Completata",
+      description: "Tutti gli agenti hanno presentato posizioni iniziali",
+    },
+    {
+      id: 2,
+      time: "00:02:45",
+      type: "alert",
+      title: "Contraddizione Prove Rilevata",
+      description: "Testimonianza in conflitto con cronologia forense",
+    },
+    {
+      id: 3,
+      time: "00:05:18",
+      type: "success",
+      title: "Vantaggio Strategico Identificato",
+      description: "Difesa ha sfruttato lacuna catena di custodia",
+    },
+    {
+      id: 4,
+      time: "00:07:32",
+      type: "milestone",
+      title: "Fase Controesame",
+      description: "Credibilità perito contestata",
+    },
+  ] : [
     {
       id: 1,
       time: "00:00:12",
@@ -68,7 +102,9 @@ const SimulationTimeline = () => {
     <Card className="bg-card border-border p-6">
       <div className="flex items-center gap-2 mb-6">
         <TrendingUp className="h-5 w-5 text-accent" />
-        <h2 className="text-2xl font-bold">Simulation Timeline</h2>
+        <h2 className="text-2xl font-bold">
+          {country === "IT" ? "Cronologia Simulazione" : "Simulation Timeline"}
+        </h2>
       </div>
 
       <div className="space-y-4">
@@ -110,7 +146,9 @@ const SimulationTimeline = () => {
 
       <div className="mt-6 pt-4 border-t border-border">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Total Duration</span>
+          <span className="text-muted-foreground">
+            {country === "IT" ? "Durata Totale" : "Total Duration"}
+          </span>
           <span className="font-mono font-semibold text-primary">00:07:32</span>
         </div>
       </div>
