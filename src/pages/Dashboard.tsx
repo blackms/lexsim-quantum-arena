@@ -9,7 +9,9 @@ import SimulationStats from "@/components/SimulationStats";
 import StrategyPanel from "@/components/StrategyPanel";
 import ScenarioConfig from "@/components/ScenarioConfig";
 import SimulationTimeline from "@/components/SimulationTimeline";
+import ModelSelector from "@/components/ModelSelector";
 import { ScenarioCountry, ScenarioConfig as ScenarioConfigType } from "@/types/scenario";
+import { defaultAgentModels } from "@/types/aiModels";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +21,8 @@ const Dashboard = () => {
   const [hasStarted, setHasStarted] = useState(false);
   const [simulationTime, setSimulationTime] = useState(0);
   const [scenario, setScenario] = useState<ScenarioConfigType | null>(null);
+  const [agentModels, setAgentModels] = useState<Record<string, string>>(defaultAgentModels);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -128,7 +132,7 @@ const Dashboard = () => {
                 </>
               )}
               
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => setShowSettings(!showSettings)}>
                 <Settings className="h-4 w-4" />
               </Button>
             </div>
@@ -160,8 +164,18 @@ const Dashboard = () => {
           // Simulation View
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Left Column - Debate & Strategies */}
-            <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-card border-border p-6">
+            <div className={`${showSettings ? 'lg:col-span-2' : 'lg:col-span-2'} space-y-6`}>
+              {/* Model Settings Panel (only for IT scenarios) */}
+              {showSettings && scenario?.country === "IT" && (
+                <ModelSelector 
+                  agentModels={agentModels}
+                  onModelChange={(agent, model) => {
+                    setAgentModels(prev => ({ ...prev, [agent]: model }));
+                  }}
+                />
+              )}
+
+              <Card className="bg-card border-border p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${isSimulating ? 'bg-primary animate-pulse-glow' : 'bg-muted'}`} />
@@ -177,6 +191,7 @@ const Dashboard = () => {
                   country={scenario?.country || "US"}
                   caseType={scenario?.caseType}
                   evidenceStrength={scenario?.evidenceStrength}
+                  agentModels={agentModels}
                 />
               </Card>
 

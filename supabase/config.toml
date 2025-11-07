@@ -2,3 +2,6 @@ project_id = "idcplbjekzrhqitjudhg"
 
 [functions.generate-legal-argument]
 verify_jwt = false
+
+[functions.legal-agent-langchain]
+verify_jwt = false

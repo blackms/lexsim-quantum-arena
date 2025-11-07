@@ -58,14 +58,24 @@ interface AgentDebateProps {
   country: ScenarioCountry;
   caseType?: string;
   evidenceStrength?: number;
+  agentModels?: Record<string, string>;
 }
 
-const AgentDebate = ({ isSimulating, country, caseType = "criminal", evidenceStrength = 75 }: AgentDebateProps) => {
+const AgentDebate = ({ isSimulating, country, caseType = "criminal", evidenceStrength = 75, agentModels = {} }: AgentDebateProps) => {
   const agentLabels = getAgentLabels(country);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const agents: Array<{ role: "prosecutor" | "defense" | "judge" | "witness" | "expert", key: "prosecution" | "defense" | "judge" | "witness" | "expert" }> = [
+  // Map agent roles between systems
+  const agentRoleMap: Record<string, { langchainRole: string, displayKey: keyof typeof agentLabels }> = {
+    prosecutor: { langchainRole: "pm", displayKey: "prosecutor" },
+    defense: { langchainRole: "difesa", displayKey: "defense" },
+    judge: { langchainRole: "giudice", displayKey: "judge" },
+    expert: { langchainRole: "perito", displayKey: "expert" },
+    witness: { langchainRole: "testimone", displayKey: "witness" },
+  };
+
+  const agents: Array<{ role: keyof typeof agentRoleMap, key: "prosecution" | "defense" | "judge" | "witness" | "expert" }> = [
     { role: "prosecutor", key: "prosecution" },
     { role: "defense", key: "defense" },
     { role: "judge", key: "judge" },
@@ -73,7 +83,7 @@ const AgentDebate = ({ isSimulating, country, caseType = "criminal", evidenceStr
     { role: "witness", key: "witness" },
   ];
 
-  const generateArgument = async (agentRole: string, agentKey: string) => {
+  const generateArgument = async (agentRole: keyof typeof agentRoleMap, agentKey: string) => {
     if (isGenerating) return;
     
     setIsGenerating(true);
@@ -83,14 +93,26 @@ const AgentDebate = ({ isSimulating, country, caseType = "criminal", evidenceStr
         : `${caseType} case, evidence strength ${evidenceStrength}%`;
       
       const previousArguments = messages.slice(-5).map(m => m.content);
+      const agentInfo = agentRoleMap[agentRole];
 
-      const { data, error } = await supabase.functions.invoke("generate-legal-argument", {
-        body: {
-          agent: agentRole,
-          country,
-          caseContext,
-          previousArguments,
-        },
+      // Use Langchain function for Italian scenarios, regular function for US
+      const functionName = country === "IT" ? "legal-agent-langchain" : "generate-legal-argument";
+      const requestBody = country === "IT" 
+        ? {
+            agent: agentInfo.langchainRole,
+            caseContext,
+            previousArguments,
+            model: agentModels[agentInfo.langchainRole] || "anthropic/claude-3.5-sonnet",
+          }
+        : {
+            agent: agentRole,
+            country,
+            caseContext,
+            previousArguments,
+          };
+
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: requestBody,
       });
 
       if (error) {
@@ -100,7 +122,7 @@ const AgentDebate = ({ isSimulating, country, caseType = "criminal", evidenceStr
 
       const newMessage: Message = {
         id: Date.now(),
-        agent: agentLabels[agentRole as keyof typeof agentLabels] || agentRole,
+        agent: agentLabels[agentInfo.displayKey],
         role: agentKey as Message["role"],
         content: data.argument,
         timestamp: new Date(),
