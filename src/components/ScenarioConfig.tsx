@@ -5,17 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { FileText, User, Building2, Scale, Globe } from "lucide-react";
+import { FileText, User, Building2, Scale, Globe, Settings } from "lucide-react";
 import { ScenarioCountry, ScenarioConfig as ScenarioConfigType, getCaseTypes, getJurisdictions, getCurrency } from "@/types/scenario";
-import ModelSelector from "@/components/ModelSelector";
 
 interface ScenarioConfigProps {
   onStart: (config: ScenarioConfigType) => void;
-  agentModels: Record<string, string>;
-  onModelChange: (agent: string, model: string) => void;
+  onOpenModelSettings?: () => void;
 }
 
-const ScenarioConfig = ({ onStart, agentModels, onModelChange }: ScenarioConfigProps) => {
+const ScenarioConfig = ({ onStart, onOpenModelSettings }: ScenarioConfigProps) => {
   const [country, setCountry] = useState<ScenarioCountry>("US");
   const [caseType, setCaseType] = useState("");
   const [jurisdiction, setJurisdiction] = useState("");
@@ -42,9 +40,21 @@ const ScenarioConfig = ({ onStart, agentModels, onModelChange }: ScenarioConfigP
 
   return (
     <Card className="bg-card border-border p-6">
-      <div className="flex items-center gap-2 mb-6">
-        <FileText className="h-5 w-5 text-primary" />
-        <h2 className="text-2xl font-bold">Configure Scenario</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-primary" />
+          <h2 className="text-2xl font-bold">Configure Scenario</h2>
+        </div>
+        {country === "IT" && onOpenModelSettings && (
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={onOpenModelSettings}
+            className="border-primary/30 hover:bg-primary/10"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       <div className="space-y-6">
@@ -168,19 +178,7 @@ const ScenarioConfig = ({ onStart, agentModels, onModelChange }: ScenarioConfigP
             <span>{country === "IT" ? "Max" : "Maximum"}</span>
           </div>
         </div>
-      </div>
 
-      {/* AI Model Configuration for Italian scenarios */}
-      {country === "IT" && (
-        <div className="mt-6">
-          <ModelSelector 
-            agentModels={agentModels}
-            onModelChange={onModelChange}
-          />
-        </div>
-      )}
-
-      <div className="space-y-6 mt-6">
         {/* Start Button */}
         <Button 
           className="w-full bg-primary hover:bg-primary/90 shadow-glow mt-8" 

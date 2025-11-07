@@ -9,7 +9,7 @@ import SimulationStats from "@/components/SimulationStats";
 import StrategyPanel from "@/components/StrategyPanel";
 import ScenarioConfig from "@/components/ScenarioConfig";
 import SimulationTimeline from "@/components/SimulationTimeline";
-import ModelSelector from "@/components/ModelSelector";
+import ModelSelectorDialog from "@/components/ModelSelectorDialog";
 import { ScenarioCountry, ScenarioConfig as ScenarioConfigType } from "@/types/scenario";
 import { defaultAgentModels } from "@/types/aiModels";
 
@@ -22,7 +22,7 @@ const Dashboard = () => {
   const [simulationTime, setSimulationTime] = useState(0);
   const [scenario, setScenario] = useState<ScenarioConfigType | null>(null);
   const [agentModels, setAgentModels] = useState<Record<string, string>>(defaultAgentModels);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showModelSettings, setShowModelSettings] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -132,9 +132,16 @@ const Dashboard = () => {
                 </>
               )}
               
-              <Button variant="ghost" size="icon" onClick={() => setShowSettings(!showSettings)}>
-                <Settings className="h-4 w-4" />
-              </Button>
+              {scenario?.country === "IT" && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setShowModelSettings(true)}
+                  title="Configura Modelli AI"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -159,19 +166,27 @@ const Dashboard = () => {
             <div className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
               <ScenarioConfig 
                 onStart={handleStart}
-                agentModels={agentModels}
-                onModelChange={(agent, model) => {
-                  setAgentModels(prev => ({ ...prev, [agent]: model }));
-                }}
+                onOpenModelSettings={() => setShowModelSettings(true)}
               />
             </div>
+            
+            {/* Model Settings Dialog */}
+            <ModelSelectorDialog
+              open={showModelSettings}
+              onOpenChange={setShowModelSettings}
+              agentModels={agentModels}
+              onModelChange={(agent, model) => {
+                setAgentModels(prev => ({ ...prev, [agent]: model }));
+              }}
+            />
           </div>
         ) : (
           // Simulation View
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Left Column - Debate & Strategies */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="bg-card border-border p-6">
+          <>
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Left Column - Debate & Strategies */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="bg-card border-border p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${isSimulating ? 'bg-primary animate-pulse-glow' : 'bg-muted'}`} />
@@ -204,6 +219,17 @@ const Dashboard = () => {
               <SimulationTimeline country={scenario?.country || "US"} />
             </div>
           </div>
+          
+          {/* Model Settings Dialog for Italian scenarios */}
+          <ModelSelectorDialog
+            open={showModelSettings}
+            onOpenChange={setShowModelSettings}
+            agentModels={agentModels}
+            onModelChange={(agent, model) => {
+              setAgentModels(prev => ({ ...prev, [agent]: model }));
+            }}
+          />
+        </>
         )}
       </div>
     </div>
