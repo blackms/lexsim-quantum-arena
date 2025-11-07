@@ -132,16 +132,14 @@ const Dashboard = () => {
                 </>
               )}
               
-              {scenario?.country === "IT" && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setShowModelSettings(true)}
-                  title="Configura Modelli AI"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              )}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setShowModelSettings(true)}
+                title={scenario?.country === "IT" ? "Configura Modelli AI" : "Configure AI Models"}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
@@ -178,6 +176,7 @@ const Dashboard = () => {
               onModelChange={(agent, model) => {
                 setAgentModels(prev => ({ ...prev, [agent]: model }));
               }}
+              country={scenario?.country}
             />
           </div>
         ) : (
@@ -220,7 +219,7 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {/* Model Settings Dialog for Italian scenarios */}
+          {/* Model Settings Dialog */}
           <ModelSelectorDialog
             open={showModelSettings}
             onOpenChange={setShowModelSettings}
@@ -228,6 +227,7 @@ const Dashboard = () => {
             onModelChange={(agent, model) => {
               setAgentModels(prev => ({ ...prev, [agent]: model }));
             }}
+            country={scenario?.country}
           />
         </>
         )}

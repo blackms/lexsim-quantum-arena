@@ -45,12 +45,13 @@ const ScenarioConfig = ({ onStart, onOpenModelSettings }: ScenarioConfigProps) =
           <FileText className="h-5 w-5 text-primary" />
           <h2 className="text-2xl font-bold">Configure Scenario</h2>
         </div>
-        {country === "IT" && onOpenModelSettings && (
+        {onOpenModelSettings && (
           <Button 
             variant="outline" 
             size="icon"
             onClick={onOpenModelSettings}
             className="border-primary/30 hover:bg-primary/10"
+            title={country === "IT" ? "Configura Modelli AI" : "Configure AI Models"}
           >
             <Settings className="h-4 w-4" />
           </Button>
